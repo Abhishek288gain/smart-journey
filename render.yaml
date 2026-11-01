@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: smart-journey-preview
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci --include=dev && npm run prisma:generate && cd ../frontend && npm ci && npm run build
+    startCommand: npm run db:push && npm run import:demo-catalog && npm run import:attached-data && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: development
+      - key: DATABASE_URL
+        value: file:./demo.db
+      - key: JWT_SECRET
+        generateValue: true
+      - key: TICKET_SIGNING_SECRET
+        generateValue: true
+      - key: OTP_MODE
+        value: mock
+      - key: PAYMENT_MODE
+        value: mock
+      - key: SERPAPI_API_KEY
+        sync: false

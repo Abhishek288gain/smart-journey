@@ -1,0 +1,329 @@
+// Prisma Schema for Smart Journey - Unified Train & Bus Platform
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/smart-journey-client-v4"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String          @id @default(uuid())
+  phone         String?         @unique
+  email         String?         @unique
+  fullName      String?         @map("full_name")
+  role          String          @default("user") // "user" | "admin"
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  passengers    Passenger[]
+  bookings      Booking[]
+  savedRoutes   SavedRoute[]
+  searchHistory SearchHistory[]
+  notifications Notification[]
+  priceAlerts  PriceAlert[]
+
+  @@map("users")
+}
+
+model Passenger {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  fullName        String   @map("full_name")
+  age             Int
+  gender          String   // "male" | "female" | "other"
+  berthPreference String?  @map("berth_preference") // "lower" | "middle" | "upper" | "side_lower" | "side_upper" | "window" | "aisle"
+  idProofType     String?  @map("id_proof_type") // "AADHAAR" | "PAN" | "PASSPORT" | "VOTER_ID"
+  idProofNumber   String?  @map("id_proof_number")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("passengers")
+}
+
+model Station {
+  code           String   @id // e.g. "JBP", "BOM", "NDLS"
+  name           String   // "Jabalpur Junction"
+  city           String   // "Jabalpur"
+  state          String   // "Madhya Pradesh"
+  latitude       Float?
+  longitude      Float?
+  totalPlatforms Int      @default(6) @map("total_platforms")
+
+  originRoutes      Route[] @relation("OriginStation")
+  destinationRoutes Route[] @relation("DestinationStation")
+
+  @@index([city])
+  @@index([name])
+  @@index([code])
+
+  @@map("stations")
+}
+
+model BusStop {
+  id        String   @id @default(uuid())
+  code      String   @unique // e.g. "JBP-ISBT", "BOM-BOR"
+  name      String   // "Deendayal Bus Stand"
+  city      String   // "Jabalpur"
+  landmark  String?  // "Near ISBT Flyover"
+  latitude  Float?
+  longitude Float?
+
+  originRoutes      Route[] @relation("OriginBusStop")
+  destinationRoutes Route[] @relation("DestinationBusStop")
+
+  @@index([city])
+  @@index([name])
+  @@index([code])
+
+  @@map("bus_stops")
+}
+
+model Route {
+  id                     String    @id @default(uuid())
+  mode                   String    // "train" | "bus"
+  routeNumber            String    @map("route_number") // "12189" or "ZG-4412"
+  routeName              String    @map("route_name")   // "Garib Rath Express" or "Zingbus Luxury AC"
+  operator               String?   // "Indian Railways" or "Zingbus"
+  originStationCode      String?   @map("origin_station_code")
+  destStationCode        String?   @map("dest_station_code")
+  originBusStopCode      String?   @map("origin_bus_stop_code")
+  destBusStopCode        String?   @map("dest_bus_stop_code")
+  totalDistanceKm        Int       @default(0) @map("total_distance_km")
+  estimatedDurationMins  Int       @map("estimated_duration_mins")
+  intermediateStopsJson  String    @default("[]") @map("intermediate_stops_json") // JSON string of stops
+  amenitiesJson          String    @default("[]") @map("amenities_json") // ["WiFi", "Charging Point", "Water Bottle"]
+  busLayoutType          String?   @map("bus_layout_type") // "2+1" | "2+2"
+  dataSource             String    @default("DEMO_SAMPLE") @map("data_source")
+  dataStatus             String    @default("DEMO") @map("data_status") // "DEMO" | "VERIFIED"
+  lastUpdatedAt          DateTime? @map("last_updated_at")
+  runningDaysJson        String    @default("[]") @map("running_days_json")
+  bookingUrl             String?   @map("booking_url")
+  createdAt              DateTime  @default(now()) @map("created_at")
+
+  originStation          Station?  @relation("OriginStation", fields: [originStationCode], references: [code])
+  destStation            Station?  @relation("DestinationStation", fields: [destStationCode], references: [code])
+  originBusStop          BusStop?  @relation("OriginBusStop", fields: [originBusStopCode], references: [code])
+  destBusStop            BusStop?  @relation("DestinationBusStop", fields: [destBusStopCode], references: [code])
+
+  schedules              Schedule[]
+
+  @@index([mode, routeNumber])
+  @@index([mode, originStationCode, destStationCode])
+  @@index([mode, originBusStopCode, destBusStopCode])
+  @@map("routes")
+}
+
+model Schedule {
+  id                    String    @id @default(uuid())
+  routeId               String    @map("route_id")
+  travelDate            String    @map("travel_date") // "YYYY-MM-DD"
+  departureTime         DateTime  @map("departure_time")
+  arrivalTime           DateTime  @map("arrival_time")
+  status                String    @default("ON_TIME") @map("status") // "ON_TIME" | "DELAYED" | "CANCELLED"
+  delayMinutes          Int       @default(0) @map("delay_minutes")
+  currentLocation       String?   @map("current_location") // "Bhopal Junction"
+  seatInventoryJson     String    @default("{}") @map("seat_inventory_json") // Class-wise or seat map status
+  pricingTiersJson      String    @default("{}") @map("pricing_tiers_json") // Fares per class/seat
+  createdAt             DateTime  @default(now()) @map("created_at")
+
+  route                 Route     @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  bookings              Booking[]
+
+  @@index([routeId, travelDate])
+  @@map("schedules")
+}
+
+model Booking {
+  id                 String             @id @default(uuid())
+  bookingPnr         String             @unique @map("booking_pnr") // "SJ12345678" or 10-digit IRCTC PNR
+  userId             String             @map("user_id")
+  scheduleId         String             @map("schedule_id")
+  transportMode      String             @map("transport_mode") // "train" | "bus"
+  status             String             @default("PENDING") // "PENDING" | "CONFIRMED" | "CANCELLED" | "REFUNDED" | "EXPIRED"
+  departureTime      DateTime           @map("departure_time")
+  arrivalTime        DateTime           @map("arrival_time")
+  originName         String             @map("origin_name")
+  destinationName    String             @map("destination_name")
+  baseFare           Float              @map("base_fare")
+  taxes              Float              @default(0.0)
+  convenienceFee     Float              @default(0.0) @map("convenience_fee")
+  discountAmount     Float              @default(0.0) @map("discount_amount")
+  totalAmount        Float              @map("total_amount")
+  seatLockToken      String?            @map("seat_lock_token")
+  seatLockExpiresAt  DateTime?          @map("seat_lock_expires_at")
+  boardingPointJson  String?            @map("boarding_point_json")
+  droppingPointJson  String?            @map("dropping_point_json")
+  contactPhone       String?            @map("contact_phone")
+  contactEmail       String?            @map("contact_email")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schedule           Schedule           @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  passengers         BookingPassenger[]
+  payments           Payment[]
+  refunds            Refund[]
+  notifications      Notification[]
+
+  @@map("bookings")
+}
+
+model BookingPassenger {
+  id                String   @id @default(uuid())
+  bookingId         String   @map("booking_id")
+  fullName          String   @map("full_name")
+  age               Int
+  gender            String
+  seatOrBerthNumber String   @map("seat_or_berth_number") // "B4-32" or "L1"
+  coachOrDeck       String?  @map("coach_or_deck") // "B4" or "Lower Deck"
+  classType         String   @map("class_type") // "3A" | "SL" | "SLEEPER" | "SEATER"
+  status            String   @default("CONFIRMED") // "CONFIRMED" | "CANCELLED"
+  idProofType       String?  @map("id_proof_type")
+  idProofNumber     String?  @map("id_proof_number")
+
+  booking           Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("booking_passengers")
+}
+
+model Payment {
+  id               String   @id @default(uuid())
+  bookingId        String   @map("booking_id")
+  razorpayOrderId  String?  @unique @map("razorpay_order_id")
+  razorpayPaymentId String? @unique @map("razorpay_payment_id")
+  paymentMethod    String?  @map("payment_method") // "UPI" | "CARD" | "NETBANKING" | "WALLET"
+  amount           Float
+  currency         String   @default("INR")
+  status           String   @default("CREATED") // "CREATED" | "CAPTURED" | "FAILED"
+  idempotencyKey   String?  @unique @map("idempotency_key")
+  rawPayloadJson   String?  @map("raw_payload_json")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  booking          Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  refunds          Refund[]
+
+  @@map("payments")
+}
+
+model Refund {
+  id              String   @id @default(uuid())
+  bookingId       String   @map("booking_id")
+  paymentId       String?  @map("payment_id")
+  razorpayRefundId String? @unique @map("razorpay_refund_id")
+  originalAmount  Float    @map("original_amount")
+  cancellationFee Float    @map("cancellation_fee")
+  refundAmount    Float    @map("refund_amount")
+  refundStatus    String   @default("PROCESSED") @map("refund_status") // "INITIATED" | "PROCESSED" | "FAILED"
+  reason          String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  payment         Payment? @relation(fields: [paymentId], references: [id])
+
+  @@map("refunds")
+}
+
+model SavedRoute {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  transportMode   String   @map("transport_mode") // "train" | "bus" | "all"
+  originCode      String   @map("origin_code")
+  originName      String   @map("origin_name")
+  destCode        String   @map("dest_code")
+  destName        String   @map("dest_name")
+  travelDate      String?  @map("travel_date")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("saved_routes")
+}
+
+model PriceAlert {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  origin          String
+  destination     String
+  travelDate      String?  @map("travel_date")
+  transportMode   String   @default("any") @map("transport_mode")
+  targetPrice     Float    @map("target_price")
+  isActive        Boolean  @default(true) @map("is_active")
+  lastTriggeredKey String? @map("last_triggered_key")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("price_alerts")
+}
+
+model SearchHistory {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  transportMode String   @default("all") @map("transport_mode") // "train" | "bus" | "all"
+  origin        String
+  destination   String
+  travelDate    String?  @map("travel_date")
+  searchedAt    DateTime @default(now()) @map("searched_at")
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("search_history")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  bookingId String?  @map("booking_id")
+  type      String   // "REMINDER_24H" | "REMINDER_2H" | "DELAY_ALERT" | "BOOKING_CONFIRMED" | "REFUND_ISSUED"
+  title     String
+  message   String
+  isRead    Boolean  @default(false) @map("is_read")
+  deliveredAt DateTime? @map("delivered_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@map("notifications")
+}
+
+// Original supplied JSON is retained as a clearly labelled synthetic dataset.
+// It is separate from operator-backed routes, fares, availability, and bookings.
+model TransportDatasetRecord {
+  id                 String   @id
+  mode               String   // "train" | "bus" | "flight"
+  serviceNumber      String   @map("service_number")
+  serviceName        String   @map("service_name")
+  operator           String?
+  sourceCity         String   @map("source_city")
+  sourceName         String   @map("source_name")
+  sourceCode         String?  @map("source_code")
+  sourceState        String?  @map("source_state")
+  destinationCity    String   @map("destination_city")
+  destinationName    String   @map("destination_name")
+  destinationCode    String?  @map("destination_code")
+  destinationState   String?  @map("destination_state")
+  departureTime      String   @map("departure_time")
+  arrivalTime        String   @map("arrival_time")
+  arrivalDayOffset   Int      @default(0) @map("arrival_day_offset")
+  durationMinutes    Int      @map("duration_minutes")
+  estimatedFareINR   Float?   @map("estimated_fare_inr")
+  distanceKm         Int?
+  runningDaysJson    String   @default("[]") @map("running_days_json")
+  stopsJson          String   @default("[]") @map("stops_json")
+  classesJson        String   @default("[]") @map("classes_json")
+  amenitiesJson      String   @default("[]") @map("amenities_json")
+  recordJson         String   @map("record_json")
+  dataStatus         String   @default("DEMO") @map("data_status")
+  bookingSupported   Boolean  @default(false) @map("booking_supported")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  @@index([mode, sourceCity, destinationCity])
+  @@index([mode, sourceCode, destinationCode])
+  @@map("transport_dataset_records")
+}
