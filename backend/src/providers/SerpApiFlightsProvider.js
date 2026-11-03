@@ -6,6 +6,8 @@ const AIRPORTS = {
   mangalore: "IXE", mumbai: "BOM", nagpur: "NAG", patna: "PAT", pune: "PNQ", ranchi: "IXR", srinagar: "SXR",
   surat: "STV", thiruvananthapuram: "TRV", trivandrum: "TRV", udaipur: "UDR", vadodara: "BDQ", varanasi: "VNS",
   visakhapatnam: "VTZ", vizag: "VTZ", gwalior: "GWL",
+  // Nearest served airport for these nearby towns (airport labels remain visible).
+  rishikesh: "DED", haridwar: "DED", mussoorie: "DED",
 };
 
 const toAirportCode = (location) => {
@@ -138,3 +140,4 @@ class SerpApiFlightsProvider {
 }
 
 module.exports = new SerpApiFlightsProvider();
+module.exports.toAirportCode = toAirportCode;

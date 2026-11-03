@@ -57,11 +57,11 @@ export default function Navbar() {
               <button onClick={() => { logout(); setUserDropdownOpen(false); }}><LogOut size={15} />Sign out</button>
             </div>}
           </div> : <button className="sj-login-button" onClick={() => setLoginModalOpen(true)}><User size={15} />Sign in</button>}
-          <button className="sj-mobile-toggle" onClick={() => setMobileMenuOpen((value) => !value)} aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"}>{mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}</button>
+          <button type="button" className="sj-mobile-toggle" onClick={() => setMobileMenuOpen((value) => !value)} aria-controls="sj-main-taskbars" aria-expanded={mobileMenuOpen} aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"}>{mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}</button>
         </div>
       </div>
 
-      <div className={`sj-taskbar-wrap${mobileMenuOpen ? " mobile-open" : ""}`}>
+      <div id="sj-main-taskbars" className={`sj-taskbar-wrap${mobileMenuOpen ? " mobile-open" : ""}`}>
         <nav className="sj-taskbars" aria-label="Main navigation">
           <TaskGroup label="PLAN">
             <NavLink to="/" end className={linkClass} onClick={() => setMobileMenuOpen(false)}><Home size={15} /><span>Explore</span></NavLink>

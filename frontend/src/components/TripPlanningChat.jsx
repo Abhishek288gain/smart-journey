@@ -107,12 +107,12 @@ export default function TripPlanningChat() {
     setOpen(false);
   };
 
-  return <div className="fixed bottom-5 right-5 z-[80] flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
-    {open && <section aria-label="Trip planning chat" className="flex h-[min(680px,calc(100dvh-112px))] w-[min(420px,calc(100vw-24px))] flex-col overflow-hidden rounded-3xl border border-cyan-200/20 bg-slate-950 shadow-[0_24px_90px_rgba(0,0,0,.65)]">
-      <header className="flex items-center gap-3 border-b border-slate-700/70 bg-gradient-to-r from-slate-900 to-cyan-950/70 p-4">
+  return <div className="sj-chat-widget fixed bottom-5 right-5 z-[80] flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
+    {open && <section aria-label="Trip planning chat" className="sj-chat-panel flex h-[min(680px,calc(100dvh-112px))] w-[min(420px,calc(100vw-24px))] flex-col overflow-hidden rounded-3xl border border-cyan-200/20 bg-slate-950 shadow-[0_24px_90px_rgba(0,0,0,.65)]">
+      <header className="sj-chat-header flex items-center gap-3 border-b border-slate-700/70 bg-gradient-to-r from-slate-900 to-cyan-950/70 p-4">
         <div className="grid h-10 w-10 place-items-center rounded-2xl border border-cyan-200/20 bg-cyan-300/10 text-cyan-200"><Bot size={21} /></div>
         <div className="min-w-0 flex-1"><h2 className="text-sm font-extrabold text-white">Trip planning assistant</h2><p className="mt-0.5 text-[10px] text-slate-400">Connected routes · India</p></div>
-        <label className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-950/70 px-2 py-1.5 text-[10px] text-slate-300" title="Choose travel date"><CalendarDays size={13} className="text-cyan-200" /><input aria-label="Travel date" type="date" min={today()} value={date} onChange={(event) => setDate(event.target.value)} className="w-[112px] bg-transparent text-[10px] text-white outline-none" /></label>
+        <label className="sj-chat-date flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-950/70 px-2 py-1.5 text-[10px] text-slate-300" title="Choose travel date"><CalendarDays size={13} className="text-cyan-200" /><input aria-label="Travel date" type="date" min={today()} value={date} onChange={(event) => setDate(event.target.value)} className="w-[112px] bg-transparent text-[10px] text-white outline-none" /></label>
         <button onClick={() => setOpen(false)} aria-label="Minimize trip planning chat" className="grid h-8 w-8 place-items-center rounded-xl text-slate-400 hover:bg-white/10 hover:text-white"><ChevronDown size={19} /></button>
       </header>
 

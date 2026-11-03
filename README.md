@@ -31,6 +31,12 @@ Google Flights search results are fetched through SerpApi. `backend/.env` contai
 
 To show real availability, fares, schedules, or provider PNRs, add a licensed transport API/account, document its terms, implement its adapter and reservation-confirmation flow, and import provider-sourced records with `dataStatus=VERIFIED`. Do not relabel sample rows as verified.
 
+## Interactive route map
+
+End-to-end plans include a pannable, zoomable OpenStreetMap view with fit-route controls, clickable transport legs and stop markers, and a synchronized selected-leg timeline. Known saved station/terminal coordinates are reused; missing locations are looked up as specifically named airports, railway stations, or bus terminals. Flight routes use saved airport coordinates, an offline IATA lookup for the Indian airports supported by the provider, or OpenStreetMap geocoding, then draw a great-circle path labeled approximate. The offline airport reference points are sourced from [OurAirports public-domain data](https://ourairports.com/data/). Train geometry uses a matching OpenStreetMap railway relation when available, otherwise an approximate shortest path through mapped tracks (never a road path or a line presented as a real track); bus geometry uses OSRM road routing and is marked approximate because an operator's exact bus path is not provided. These services require no application API key in the current setup. The frontend credits OpenStreetMap tiles. Geometry responses are cached in backend memory for up to six hours; unavailable or failed routes are omitted with an explicit message. Schedule and fare status remains separate from geometry status, so demo schedules are not presented as live.
+
+The public OpenStreetMap, Overpass, Nominatim, and OSRM services have their own availability and usage limits. For production or higher request volume, configure contracted/self-hosted providers and review their current terms and quotas. No Google Maps or Mapbox key is required by this implementation.
+
 ## Authentication and OTP
 
 - Local mode defaults to development mock OTP only when `OTP_MODE` is unset and no Twilio credentials are configured. The API response explicitly identifies the mock mode and returns the test code; the UI labels it as development-only.

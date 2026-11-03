@@ -37,7 +37,7 @@ export const authApi = {
 // Travel Search & Live Data Endpoints
 export const travelApi = {
   search: (params) => api.get("/search", { params }),
-  planItinerary: (params) => api.get("/search/plans", { params }),
+  planItinerary: (params, config = {}) => api.get("/search/plans", { params, ...config }),
   searchLocations: (params) => api.get("/search/locations", { params }),
   getTrainLiveStatus: (trainNo) => api.get(`/trains/${trainNo}/live`),
   checkPnr: (pnr) => api.get(`/trains/pnr/${pnr}`),

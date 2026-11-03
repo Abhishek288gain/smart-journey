@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { X, Smartphone, Mail, ShieldCheck, Zap, ArrowRight, CheckCircle2 } from "lucide-react";
 
@@ -212,6 +213,7 @@ export default function OtpLoginModal({ isOpen, onClose }) {
               </button>
             </form>
           )}
+          <p className="pt-2 text-center text-xs text-slate-400">Need an account? <Link to="/signup" onClick={onClose} className="font-bold text-cyan-300 hover:text-cyan-100">Create account</Link></p>
         </div>
       </div>
     </div>

@@ -12,6 +12,7 @@ import Notification from "./pages/Notification";
 import Checkout from "./pages/Checkout";
 import VerifyTicket from "./pages/VerifyTicket";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import TripPlanningChat from "./components/TripPlanningChat";
 
 export default function App() {
@@ -22,6 +23,8 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Register />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/booking/:lockToken" element={<ProtectedRoute><BookingFlow /></ProtectedRoute>} />
         <Route path="/booking" element={<ProtectedRoute><BookingFlow /></ProtectedRoute>} />
         <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
