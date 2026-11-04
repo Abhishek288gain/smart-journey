@@ -15,6 +15,7 @@ import {
   Switch,
   TextField,
   Typography,
+  CircularProgress,
 } from "@mui/material";
 import {
   AddAlert,
@@ -27,6 +28,7 @@ export default function Alerts() {
   const [alerts, setAlerts] = useState([]);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
     from: "Jabalpur",
     to: "Mumbai",
@@ -34,13 +36,13 @@ export default function Alerts() {
     transportMode: "any",
     targetPrice: 3000,
   });
-  const load = () =>
-    accountApi
-      .alerts()
-      .then((r) => setAlerts(r.data.alerts || []))
-      .catch((e) =>
-        setError(e.response?.data?.message || "Could not load alerts"),
-      );
+  const load = () => {
+    setLoading(true); setError("");
+    return accountApi.alerts()
+      .then((r) => setAlerts(Array.isArray(r.data.alerts) ? r.data.alerts : []))
+      .catch((e) => setError(e.response?.data?.message || "Could not load alerts. Please refresh and try again."))
+      .finally(() => setLoading(false));
+  };
   useEffect(load, []);
   const create = async () => {
     try {
@@ -52,12 +54,14 @@ export default function Alerts() {
     }
   };
   const toggle = async (id) => {
-    await accountApi.toggleAlert(id);
-    load();
+    setError("");
+    try { await accountApi.toggleAlert(id); await load(); }
+    catch (e) { setError(e.response?.data?.message || "Could not update this alert."); }
   };
   const del = async (id) => {
-    await accountApi.deleteAlert(id);
-    load();
+    setError("");
+    try { await accountApi.deleteAlert(id); await load(); }
+    catch (e) { setError(e.response?.data?.message || "Could not delete this alert."); }
   };
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -77,7 +81,8 @@ export default function Alerts() {
         </Button>
       </Box>
       {error && <MuiAlert sx={{ mb: 2 }}>{error}</MuiAlert>}
-      <Grid container spacing={2}>
+      {loading && <Box className="empty-state"><CircularProgress /><Typography color="text.secondary">Loading your price alerts…</Typography></Box>}
+      {!loading && <Grid container spacing={2}>
         {alerts.map((a) => (
           <Grid item xs={12} md={6} key={a._id}>
             <Card className="list-card">
@@ -118,8 +123,8 @@ export default function Alerts() {
             </Card>
           </Grid>
         ))}
-      </Grid>
-      {!alerts.length && (
+      </Grid>}
+      {!loading && !alerts.length && !error && (
         <Box className="empty-state">
           <NotificationsActive sx={{ fontSize: 50 }} />
           <Typography variant="h6">No price alerts</Typography>

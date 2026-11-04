@@ -130,52 +130,37 @@ class TrainDataProvider {
   }
 
   async getLiveRunningStatus(trainNo) {
-    // Pluggable logic: If RapidAPI key provided, calls RapidAPI. Otherwise returns live realistic simulation
+    // The configured catalog contains schedule data only; it is not a live running-status feed.
     const route = await prisma.route.findFirst({
       where: { routeNumber: trainNo, mode: "train" },
       include: { originStation: true, destStation: true },
     });
 
     if (!route) throw new Error("Live status is unavailable: this service is not in the stored sample catalogue or a connected live provider.");
-    const stops = JSON.parse(route.intermediateStopsJson || "[]");
-
-    // Simulate current position dynamically based on current time or middle station
-    const timeline = stops.map((stop, idx) => {
-      let status = "UPCOMING";
-      let delay = 0;
-      if (idx < 2) {
-        status = "PASSED";
-        delay = idx === 1 ? 12 : 0;
-      } else if (idx === 2) {
-        status = "CURRENT";
-        delay = 18;
-      } else {
-        status = "UPCOMING";
-        delay = 18;
-      }
-
-      return {
+    const storedStops = JSON.parse(route.intermediateStopsJson || "[]");
+    const stops = storedStops.length ? storedStops : [
+      { code: route.originStationCode, name: route.originStation?.name || route.originStationCode, arrTime: "Origin" },
+      { code: route.destStationCode, name: route.destStation?.name || route.destStationCode, arrTime: "Destination" },
+    ];
+    const timeline = stops.map((stop, index) => ({
         stationCode: stop.code,
         stationName: stop.name,
         scheduledArrival: stop.arrTime,
         scheduledDeparture: stop.depTime,
-        actualArrival: stop.arrTime,
-        actualDeparture: stop.depTime,
-        platform: stop.platform || `${idx + 1}`,
-        status,
-        delay,
-      };
-    });
+        platform: stop.platform || `${index + 1}`,
+        status: "SCHEDULED",
+      }));
 
     return {
       trainNumber: trainNo,
       trainName: route.routeName,
-      liveState: "DELAYED",
-      delayMinutes: 18,
-      currentStation: timeline.find((s) => s.status === "CURRENT") || timeline[0],
+      liveState: "UNAVAILABLE",
+      isLive: false,
+      delayMinutes: null,
+      currentStation: null,
       timeline,
       lastUpdatedAt: new Date().toISOString(),
-      source: "Illustrative simulation · no live railway feed connected",
+      source: `${route.dataStatus || "DEMO"} catalogue schedule · no live railway feed connected`,
     };
   }
 

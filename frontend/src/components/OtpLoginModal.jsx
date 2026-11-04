@@ -136,7 +136,7 @@ export default function OtpLoginModal({ isOpen, onClose }) {
                     type === "email" ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
-                  <Mail className="w-3.5 h-3.5" /> Email OTP
+                  <Mail className="w-3.5 h-3.5" /> Email / Gmail OTP
                 </button>
               </div>
 
@@ -155,7 +155,7 @@ export default function OtpLoginModal({ isOpen, onClose }) {
                 />
               </div>
 
-              {type === "phone" && <p className="-mt-2 text-[11px] text-slate-500">Enter a valid 10-digit Indian mobile number, with or without +91.</p>}
+              {type === "phone" ? <p className="-mt-2 text-[11px] text-slate-500">Enter a valid 10-digit Indian mobile number, with or without +91.</p> : <p className="-mt-2 text-[11px] text-slate-500">Enter the email you can access. Gmail addresses are supported.</p>}
 
               <button
                 type="submit"
@@ -205,7 +205,7 @@ export default function OtpLoginModal({ isOpen, onClose }) {
 
               <button
                 type="submit"
-                disabled={loading || (type === "phone" && fullName.trim().length < 2)}
+                disabled={loading}
                 className="w-full py-3 bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-500 hover:to-teal-400 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-blue-500/25 disabled:opacity-50"
               >
                 {loading ? "Verifying..." : "Verify & Complete Login"}

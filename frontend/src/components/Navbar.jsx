@@ -5,7 +5,6 @@ import {
   Activity, Bell, Bookmark, CalendarDays, Home, LogOut, Sun, Moon,
   MapPin, Menu, ScanLine, Search, Ticket, User, X, Sparkles, Route,
 } from "lucide-react";
-import TrainLiveModal from "./TrainLiveModal";
 import PnrCheckModal from "./PnrCheckModal";
 import BusLiveTrackModal from "./BusLiveTrackModal";
 import OtpLoginModal from "./OtpLoginModal";
@@ -23,7 +22,6 @@ function ToolButton({ icon: Icon, children, onClick }) {
 
 export default function Navbar() {
   const { currentUser, logout } = useAuth();
-  const [trainModalOpen, setTrainModalOpen] = useState(false);
   const [pnrModalOpen, setPnrModalOpen] = useState(false);
   const [busTrackModalOpen, setBusTrackModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -82,7 +80,7 @@ export default function Navbar() {
         </nav>
         <nav className="sj-taskbars sj-tools-taskbar" aria-label="Travel tools">
           <TaskGroup label="TRAVEL TOOLS">
-            <ToolButton icon={Activity} onClick={() => setTrainModalOpen(true)}>Train status</ToolButton>
+            <NavLink to="/train-status" className={linkClass} onClick={() => setMobileMenuOpen(false)}><Activity size={15} /><span>Train status</span></NavLink>
             <ToolButton icon={Ticket} onClick={() => setPnrModalOpen(true)}>Booking reference</ToolButton>
             <ToolButton icon={MapPin} onClick={() => setBusTrackModalOpen(true)}>Bus tracking</ToolButton>
             <NavLink to="/verify-ticket" className={linkClass} onClick={() => setMobileMenuOpen(false)}><ScanLine size={15} /><span>Verify ticket</span></NavLink>
@@ -90,7 +88,6 @@ export default function Navbar() {
         </nav>
       </div>
     </header>
-    <TrainLiveModal isOpen={trainModalOpen} onClose={() => setTrainModalOpen(false)} trainNumber="12189" />
     <PnrCheckModal isOpen={pnrModalOpen} onClose={() => setPnrModalOpen(false)} />
     <BusLiveTrackModal isOpen={busTrackModalOpen} onClose={() => setBusTrackModalOpen(false)} busId="ZG-4412" busName="Zingbus AC Sleeper" />
     <OtpLoginModal isOpen={loginModalOpen} onClose={() => setLoginModalOpen(false)} />

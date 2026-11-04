@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  CircularProgress,
 } from "@mui/material";
 import { ConfirmationNumber, Cancel, Download } from "@mui/icons-material";
 import api, { bookingApi } from "../services/api";
@@ -21,15 +22,16 @@ import "../styles/checkout.css";
 export default function Bookings() {
   const [bookings, setBookings] = useState([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
-  const load = () =>
-    api
-      .get("/bookings")
-      .then((r) => setBookings(r.data.bookings || []))
-      .catch((e) =>
-        setError(e.response?.data?.message || "Could not load bookings"),
-      );
+  const load = () => {
+    setLoading(true); setError("");
+    return api.get("/bookings")
+      .then((r) => setBookings(Array.isArray(r.data.bookings) ? r.data.bookings : []))
+      .catch((e) => setError(e.response?.data?.message || "Could not load bookings. Please refresh and try again."))
+      .finally(() => setLoading(false));
+  };
   useEffect(load, []);
   const showCancelPreview = async (id) => {
     setError("");
@@ -53,7 +55,8 @@ export default function Bookings() {
         <Typography color="text.secondary">Tickets, journey details and cancellation options.</Typography>
       </div>
       {error && <Alert sx={{ mb: 2 }}>{error}</Alert>}
-      <Grid container spacing={2}>
+      {loading && <Box className="empty-state"><CircularProgress /><Typography color="text.secondary">Loading your bookings…</Typography></Box>}
+      {!loading && <Grid container spacing={2}>
         {bookings.map((b) => {
           return (
             <Grid item xs={12} md={6} key={b.id}>
@@ -82,8 +85,8 @@ export default function Bookings() {
             </Grid>
           );
         })}
-      </Grid>
-      {!bookings.length && !error && (
+      </Grid>}
+      {!loading && !bookings.length && !error && (
         <Box className="empty-state">
           <ConfirmationNumber sx={{ fontSize: 50 }} />
           <Typography variant="h6">No bookings yet</Typography>

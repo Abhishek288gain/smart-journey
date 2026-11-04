@@ -13,6 +13,7 @@ import Checkout from "./pages/Checkout";
 import VerifyTicket from "./pages/VerifyTicket";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import TrainStatus from "./pages/TrainStatus";
 import TripPlanningChat from "./components/TripPlanningChat";
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/booking" element={<ProtectedRoute><BookingFlow /></ProtectedRoute>} />
         <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
         <Route path="/verify-ticket" element={<VerifyTicket />} />
+        <Route path="/train-status" element={<TrainStatus />} />
         <Route path="/trips" element={<ProtectedRoute><Trips /></ProtectedRoute>} />
         <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
         <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
